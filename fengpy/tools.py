@@ -10,6 +10,7 @@ from itertools import izip_longest, islice, izip
 def flatten(l):
     """
     Do recursive flatten from an iterable.
+    If we only need to flatten a two layer iterable, we can use chain.fromiterable()
     """
     for el in l:
         if isinstance(el, collections.Iterable) and not isinstance(el, basestring):
