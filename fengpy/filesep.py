@@ -13,6 +13,8 @@ def get_lines(input_file, start, end):
             cnt += 1
             if start <= cnt <= end:
                 print line,
+            elif cnt > end:
+                return
 
 
 if __name__ == "__main__":
