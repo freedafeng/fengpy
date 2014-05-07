@@ -2,12 +2,14 @@ from itertools import izip, chain
 import json
 
 
-# 12/26/2013. create a generator to read a tsv file into an iterator of dictionary.
-def tsv_2_dict_iterator(filename, names=None, delimiter='\t', has_header=True, strict=True, use_header_as_schema=False, chars=None):
+def tsv_2_dict_iterator(filename, names=None, delimiter='\t', has_header=True, strict=True, use_header_as_schema=False, chars=None, ignore_quotes=False):
     """
     Either names is a list, or both has_header and use_header_as_schema are true. In the latter case, we will
     use the provided schema in the data file as the dictionary's schema.
     """
+    if ignore_quotes:
+        import csv
+
     with open(filename) as fin:
         if has_header:
             line = iter(fin).next()
@@ -17,13 +19,39 @@ def tsv_2_dict_iterator(filename, names=None, delimiter='\t', has_header=True, s
         column_cnt = len(names)
 
         for line in fin:
-            splited = line.strip(chars).split(delimiter)
+            if ignore_quotes:
+                splited = csv.reader([line.strip()], delimiter=delimiter).next()
+            else:
+                splited = line.strip(chars).split(delimiter)
+
             if strict and len(splited) != column_cnt:
                 print 'Warning. wrong columns, expected column cnt %d, observed %d: %s' % \
                       (column_cnt, len(splited), line),
             else:
                 yield dict(izip(names, splited))
 
+
+# def tsv_2_dict_iterator(filename, names=None, delimiter='\t', has_header=True, strict=True, use_header_as_schema=False, chars=None):
+#     """
+#     Either names is a list, or both has_header and use_header_as_schema are true. In the latter case, we will
+#     use the provided schema in the data file as the dictionary's schema.
+#     """
+#     with open(filename) as fin:
+#         if has_header:
+#             line = iter(fin).next()
+#             if use_header_as_schema:
+#                 names = line.strip(chars).split(delimiter)
+#
+#         column_cnt = len(names)
+#
+#         for line in fin:
+#             splited = line.strip(chars).split(delimiter)
+#             if strict and len(splited) != column_cnt:
+#                 print 'Warning. wrong columns, expected column cnt %d, observed %d: %s' % \
+#                       (column_cnt, len(splited), line),
+#             else:
+#                 yield dict(izip(names, splited))
+#
 
 def json_file_iterator(filename):
     """
@@ -34,54 +62,31 @@ def json_file_iterator(filename):
             yield json.loads(line.strip())
 
 
-def tsv_2_dict_iterator_encoding(filename, names=None, delimiter='\t', has_header=True, strict=True, use_header_as_schema=False, chars=None, encoding='utf-8'):
-    """
-    Either names is a list, or both has_header and use_header_as_schema are true. In the latter case, we will
-    use the provided schema in the data file as the dictionary's schema.
-    """
-    import codecs
-
-    with codecs.open(filename, encoding=encoding) as fin:
-        if has_header:
-            line = iter(fin).next()
-            if use_header_as_schema:
-                names = line.strip(chars).split(delimiter)
-
-        column_cnt = len(names)
-
-        for line in fin:
-            splited = line.strip(chars).split(delimiter)
-            if strict and len(splited) != column_cnt:
-                print 'Warning. wrong columns, expected column cnt %d, observed %d: %s' % \
-                      (column_cnt, len(splited), line),
-            else:
-                yield dict(izip(names, splited))
-
-
-def tsv_2_dict_iterator_ignore_quotes(filename, names=None, delimiter='\t', has_header=True, strict=True, use_header_as_schema=False):
-    """
-    Either names is a list, or both has_header and use_header_as_schema are true. In the latter case, we will
-    use the provided schema in the data file as the dictionary's schema.
-
-    This version ignore the delimiters inside the quotes.
-    """
-    import csv
-
-    with open(filename) as fin:
-        if has_header:
-            line = iter(fin).next()
-            if use_header_as_schema:
-                names = line.strip().split(delimiter)
-
-        column_cnt = len(names)
-
-        for line in fin:
-            splited = csv.reader([line.strip()], delimiter=delimiter).next()
-            if strict and len(splited) != column_cnt:
-                print 'Warning. wrong columns, expected column cnt %d, observed %d: %s' % \
-                      (column_cnt, len(splited), line),
-            else:
-                yield dict(izip(names, splited))
+# Todo: merge this one with the first function.
+# def tsv_2_dict_iterator_ignore_quotes(filename, names=None, delimiter='\t', has_header=True, strict=True, use_header_as_schema=False):
+#     """
+#     Either names is a list, or both has_header and use_header_as_schema are true. In the latter case, we will
+#     use the provided schema in the data file as the dictionary's schema.
+#
+#     This version ignore the delimiters inside the quotes.
+#     """
+#     import csv
+#
+#     with open(filename) as fin:
+#         if has_header:
+#             line = iter(fin).next()
+#             if use_header_as_schema:
+#                 names = line.strip().split(delimiter)
+#
+#         column_cnt = len(names)
+#
+#         for line in fin:
+#             splited = csv.reader([line.strip()], delimiter=delimiter).next()
+#             if strict and len(splited) != column_cnt:
+#                 print 'Warning. wrong columns, expected column cnt %d, observed %d: %s' % \
+#                       (column_cnt, len(splited), line),
+#             else:
+#                 yield dict(izip(names, splited))
 
 
 def iter_2_tsv(data_store, filename, columns, delimiter='\t', has_header=False):
@@ -96,6 +101,8 @@ def iter_2_tsv(data_store, filename, columns, delimiter='\t', has_header=False):
         for features in data_store:
             fout.write('%s\n' % delimiter.join(str(features[column]) for column in columns))
 
+# In the future, I might want to move all the shards related functions into another single file shards.py, for ex.
+
 
 def iter_2_tsv_shards(data_store, filename_prefix, columns, sharding_col, delimiter='\t', splits=50, mode='w'):
     """
@@ -103,7 +110,7 @@ def iter_2_tsv_shards(data_store, filename_prefix, columns, sharding_col, delimi
     'columns' should be a list or tuple of column names (strings). It determines the order of the columns in each line.
 
     sharding_col: The key to which we are going to shard on. (get hashcode on that).
-    splits: number of file that are going to be written to.
+    splits: number of files that are going to be written to.
     mode: 'w', or 'a' depends on whether we want to keep the original data of the files.
     """
 
@@ -136,10 +143,28 @@ def tsv_shards_2_dict_flattened(filename_prefix, names, splits=50, delimiter='\t
     return chain.from_iterable(tsv_shards_2_dict(filename_prefix, names, splits=splits, delimiter=delimiter, strict=strict))
 
 
+def get_shards(filename_prefix, splits=50):
+    """
+    An iterator of all the shards file names.
+    """
+    return (filename_prefix + str(split) for split in xrange(splits))
+
+
 def get_schema(input, delimiter='\t'):
     with open(input) as fin:
         line = iter(fin).next()
         return line.strip().split(delimiter)
 
+
+def tsv_filter(input_name, output_name, names, keep, delimiter='\t', has_header=False):
+    """
+    Filter the input_name tsv file to put into output_name file.
+    keep is a function whose input is the dictionary for each line. Output is to keep this data or not to.
+    """
+    raw_it = tsv_2_dict_iterator(input_name, names=names, delimiter=delimiter, has_header=has_header, strict=True, use_header_as_schema=False, chars=None)
+
+    filtered = (single for single in raw_it if keep(single))
+
+    iter_2_tsv(filtered, output_name, names, delimiter=delimiter, has_header=has_header)
 
 
