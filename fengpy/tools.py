@@ -4,7 +4,7 @@ The small tools that I am going to use very often.
 """
 
 import collections
-from itertools import izip_longest, islice, izip
+from itertools import izip_longest, islice, izip, chain
 
 
 def flatten(l):
@@ -45,6 +45,25 @@ def chunker(n, iterable):
             break
 
 
+def segmenter(k, lst):
+    """
+    The differences of this one with chunker are,
+    1. k is the number of segments we are going to split the lst into.
+    2. We only accept list, no generic iterables.
+    Also returns a list.
+    """
+    seg_size = len(lst) / k
+
+    cnt = 0
+    ret = []
+    for i in range(k - 1):
+        ret.append(lst[cnt: cnt + seg_size])
+        cnt += seg_size
+
+    ret.append(lst[cnt:])
+    return ret
+
+
 def window(seq, n=2):
     """
     to get a moving window for an iterable(iterator), use the following,
@@ -59,8 +78,33 @@ def window(seq, n=2):
         yield result
 
 
-if __name__ == "__main__":
-    a = chunker(4, range(20))
+def cv_k_fold(data_size, k):
+    """
+    A generator to create a list of k fold cross validation indices for machine leanring model training.
+    """
+    import random
 
-    for x in a:
-        print x
+    # in case range is a generator.
+    indices = list(range(data_size))
+
+    # in place shuffle.
+    random.shuffle(indices)
+
+    # cut the list into k - pieces.
+    folds = segmenter(k, indices)
+
+    for i in range(k):
+        training = chain.from_iterable(folds[j] for j in range(k) if j != i)
+        testing = folds[i]
+        yield (tuple(training), testing)
+
+
+if __name__ == "__main__":
+    # a = chunker(4, range(20))
+
+    # for x in a:
+    #     print x
+
+    print list(cv_k_fold(20, 3))
+    # print segmenter(3, range(20))
+
