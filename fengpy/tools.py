@@ -78,7 +78,7 @@ def window(seq, n=2):
         yield result
 
 
-def cv_k_fold(data_size, k):
+def cv_k_fold(data_size, k=5):
     """
     A generator to create a list of k fold cross validation indices for machine leanring model training.
     """

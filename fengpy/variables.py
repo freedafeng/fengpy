@@ -9,7 +9,8 @@ import numpy as np
 import pickle
 import json
 import copy
-from mozsci.cross_validate import cv_kfold
+# from mozsci.cross_validate import cv_kfold
+from .tools import cv_k_fold
 
 
 class Variable(object):
@@ -316,7 +317,7 @@ def k_fold_train_test_model(model, X, y, perf_measure, variable_def, k_fold=5):
 
         return perf_measure(observed, predicted)
 
-    folds = cv_kfold(len(y), k_fold)
+    folds = cv_k_fold(len(y), k_fold)
 
     perf_list = [run_one_fold(fold[0], fold[1]) for fold in folds]
 
