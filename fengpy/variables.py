@@ -9,7 +9,6 @@ import numpy as np
 import pickle
 import json
 import copy
-# from mozsci.cross_validate import cv_kfold
 from .tools import cv_k_fold
 
 
