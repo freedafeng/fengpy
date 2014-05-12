@@ -96,7 +96,7 @@ def cv_k_fold(data_size, k):
     for i in range(k):
         training = chain.from_iterable(folds[j] for j in range(k) if j != i)
         testing = folds[i]
-        yield (tuple(training), testing)
+        yield tuple(training), testing
 
 
 if __name__ == "__main__":
