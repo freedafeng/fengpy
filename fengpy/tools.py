@@ -94,7 +94,7 @@ def cv_k_fold(data_size, k=5):
     folds = segmenter(k, indices)
 
     for i in range(k):
-        training = chain.from_iterable(folds[j] for j in range(k) if j % k != i)
+        training = chain.from_iterable(folds[j] for j in range(k) if j != i)
         testing = folds[i]
         yield tuple(training), testing
 
