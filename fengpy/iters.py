@@ -31,28 +31,6 @@ def tsv_2_dict_iterator(filename, names=None, delimiter='\t', has_header=True, s
                 yield dict(izip(names, splited))
 
 
-# def tsv_2_dict_iterator(filename, names=None, delimiter='\t', has_header=True, strict=True, use_header_as_schema=False, chars=None):
-#     """
-#     Either names is a list, or both has_header and use_header_as_schema are true. In the latter case, we will
-#     use the provided schema in the data file as the dictionary's schema.
-#     """
-#     with open(filename) as fin:
-#         if has_header:
-#             line = iter(fin).next()
-#             if use_header_as_schema:
-#                 names = line.strip(chars).split(delimiter)
-#
-#         column_cnt = len(names)
-#
-#         for line in fin:
-#             splited = line.strip(chars).split(delimiter)
-#             if strict and len(splited) != column_cnt:
-#                 print 'Warning. wrong columns, expected column cnt %d, observed %d: %s' % \
-#                       (column_cnt, len(splited), line),
-#             else:
-#                 yield dict(izip(names, splited))
-#
-
 def json_file_iterator(filename):
     """
     Each line of the file is a json string.
@@ -60,33 +38,6 @@ def json_file_iterator(filename):
     with open(filename) as fin:
         for line in fin:
             yield json.loads(line.strip())
-
-
-# Todo: merge this one with the first function.
-# def tsv_2_dict_iterator_ignore_quotes(filename, names=None, delimiter='\t', has_header=True, strict=True, use_header_as_schema=False):
-#     """
-#     Either names is a list, or both has_header and use_header_as_schema are true. In the latter case, we will
-#     use the provided schema in the data file as the dictionary's schema.
-#
-#     This version ignore the delimiters inside the quotes.
-#     """
-#     import csv
-#
-#     with open(filename) as fin:
-#         if has_header:
-#             line = iter(fin).next()
-#             if use_header_as_schema:
-#                 names = line.strip().split(delimiter)
-#
-#         column_cnt = len(names)
-#
-#         for line in fin:
-#             splited = csv.reader([line.strip()], delimiter=delimiter).next()
-#             if strict and len(splited) != column_cnt:
-#                 print 'Warning. wrong columns, expected column cnt %d, observed %d: %s' % \
-#                       (column_cnt, len(splited), line),
-#             else:
-#                 yield dict(izip(names, splited))
 
 
 def iter_2_tsv(data_store, filename, columns, delimiter='\t', has_header=False):
@@ -101,10 +52,7 @@ def iter_2_tsv(data_store, filename, columns, delimiter='\t', has_header=False):
         for features in data_store:
             fout.write('%s\n' % delimiter.join(str(features[column]) for column in columns))
 
-# In the future, I might want to move all the shards related functions into another single file shards.py, for ex.
-
-
-def iter_2_tsv_shards(data_store, filename_prefix, columns, sharding_col, delimiter='\t', splits=50, mode='w'):
+def iter_2_tsv_shards(data_store, filename_prefix, columns, sharding_col, delimiter='\t', splits=100, mode='w'):
     """
     data store is an iterator of dictionaries. Each small dictionary contains keys that are the 'columns'.
     'columns' should be a list or tuple of column names (strings). It determines the order of the columns in each line.
@@ -124,7 +72,7 @@ def iter_2_tsv_shards(data_store, filename_prefix, columns, sharding_col, delimi
         fout.close()
 
 
-def tsv_shards_2_dict(filename_prefix, names, splits=50, delimiter='\t', strict=True):
+def tsv_shards_2_dict(filename_prefix, names, splits=100, delimiter='\t', strict=True):
     """
     Read all the shards. This function returns an iterator of iterators. First level iterator is the shards,
     Second level iterator is the lines of the data files. Each line turns into a dictionary.
@@ -132,7 +80,7 @@ def tsv_shards_2_dict(filename_prefix, names, splits=50, delimiter='\t', strict=
     return (tsv_2_dict_iterator(filename_prefix + str(split), names=names, delimiter=delimiter, strict=strict, has_header=False) for split in xrange(splits))
 
 
-def tsv_shards_2_dict_flattened(filename_prefix, names, splits=50, delimiter='\t', strict=True):
+def tsv_shards_2_dict_flattened(filename_prefix, names, splits=100, delimiter='\t', strict=True):
     """
     Read all the shards. This function returns a single iterator, which is only a flattened version of previous
     function.
@@ -143,7 +91,7 @@ def tsv_shards_2_dict_flattened(filename_prefix, names, splits=50, delimiter='\t
     return chain.from_iterable(tsv_shards_2_dict(filename_prefix, names, splits=splits, delimiter=delimiter, strict=strict))
 
 
-def get_shards(filename_prefix, splits=50):
+def get_shards(filename_prefix, splits=100):
     """
     An iterator of all the shards file names.
     """
