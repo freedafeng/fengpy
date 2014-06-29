@@ -31,6 +31,24 @@ def tsv_2_dict_iterator(filename, names=None, delimiter='\t', has_header=True, s
                 yield dict(izip(names, splited))
 
 
+def tsv_2_tuple_iterator(filename, column_cnt, delimiter='\t', has_header=False, strict=True):
+    """
+    I like to see if the tuple one can be faster.
+    """
+    with open(filename) as fin:
+        if has_header:
+            iter(fin).next()
+
+        for line in fin:
+            splited = line.strip().split(delimiter)
+
+            if strict and len(splited) != column_cnt:
+                print 'Warning. wrong columns, expected column cnt %d, observed %d: %s' % \
+                      (column_cnt, len(splited), line),
+            else:
+                yield splited
+
+
 def json_file_iterator(filename):
     """
     Each line of the file is a json string.
@@ -52,6 +70,7 @@ def iter_2_tsv(data_store, filename, columns, delimiter='\t', has_header=False):
         for features in data_store:
             fout.write('%s\n' % delimiter.join(str(features[column]) for column in columns))
 
+
 def iter_2_tsv_shards(data_store, filename_prefix, columns, sharding_col, delimiter='\t', splits=100, mode='w'):
     """
     data store is an iterator of dictionaries. Each small dictionary contains keys that are the 'columns'.
@@ -67,6 +86,18 @@ def iter_2_tsv_shards(data_store, filename_prefix, columns, sharding_col, delimi
     for record in data_store:
         index = hash(record[sharding_col]) % splits
         fouts[index].write('%s\n' % delimiter.join(str(record[column]) for column in columns))
+
+    for fout in fouts:
+        fout.close()
+
+
+def tuple_iter_2_tsv_shards(data_store, filename_prefix, sharding_col, delimiter='\t', splits=100, mode='w'):
+
+    fouts = [open(filename_prefix + str(split), mode) for split in xrange(splits)]
+
+    for record in data_store:
+        index = hash(record[sharding_col]) % splits
+        fouts[index].write('%s\n' % delimiter.join(record))
 
     for fout in fouts:
         fout.close()
