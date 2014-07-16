@@ -71,6 +71,16 @@ def iter_2_tsv(data_store, filename, columns, delimiter='\t', has_header=False):
             fout.write('%s\n' % delimiter.join(str(features[column]) for column in columns))
 
 
+def tuple_iter_2_tsv(data_store, filename, delimiter='\t', has_header=False, header=None):
+
+    with open(filename, 'w') as fout:
+        if has_header:
+            fout.write('%s\n' % delimiter.join(header))
+
+        for features in data_store:
+            fout.write('%s\n' % delimiter.join(str(column) for column in features))
+
+
 def iter_2_tsv_shards(data_store, filename_prefix, columns, sharding_col, delimiter='\t', splits=100, mode='w'):
     """
     data store is an iterator of dictionaries. Each small dictionary contains keys that are the 'columns'.

@@ -5,6 +5,8 @@ The small tools that I am going to use very often.
 
 import collections
 from itertools import izip_longest, islice, izip, chain
+import os
+from datetime import datetime
 
 
 def flatten(l):
@@ -99,6 +101,20 @@ def cv_k_fold(data_size, k=5):
         yield tuple(training), testing
 
 
+def disp_tm_msg(msg):
+    print datetime.now(), msg
+
+
+def disp_tm_msg_parallel(msg):
+    """
+    This is likely to be used in a long run job with multiple processes, when os.getpid() cost little compared to
+    what the job is doing.
+    :param msg: the message we want to print.
+    :return: None
+    """
+    print 'process [%s] time [%s]: %s' % (os.getpid(), datetime.now(), msg)
+
+
 if __name__ == "__main__":
     # a = chunker(4, range(20))
 
@@ -107,4 +123,6 @@ if __name__ == "__main__":
 
     print list(cv_k_fold(20, 3))
     # print segmenter(3, range(20))
+
+    disp_tm_msg_parallel("Hello, world!")
 
