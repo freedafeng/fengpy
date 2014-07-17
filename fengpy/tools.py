@@ -103,7 +103,8 @@ def cv_k_fold(data_size, k=5):
 
 
 def disp_tm_msg(msg):
-    print datetime.now(), msg
+    print 'time [%s]: %s' % (datetime.now(), msg)
+    sys.stdout.flush()
 
 
 def disp_tm_msg_parallel(msg):
