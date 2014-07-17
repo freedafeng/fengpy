@@ -6,6 +6,7 @@ The small tools that I am going to use very often.
 import collections
 from itertools import izip_longest, islice, izip, chain
 import os
+import sys
 from datetime import datetime
 
 
@@ -113,6 +114,7 @@ def disp_tm_msg_parallel(msg):
     :return: None
     """
     print 'process [%s] time [%s]: %s' % (os.getpid(), datetime.now(), msg)
+    sys.stdout.flush()
 
 
 if __name__ == "__main__":
