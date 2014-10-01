@@ -123,6 +123,32 @@ def sum_2_2level_dicts(d1, d2):
     return {x: sum_2_dictionaries(d1.get(x, {}), d2.get(x, {})) for x in set(d1).union(d2)}
 
 
+def sum_2_dictionaries_generic(d1, d2, defaultfunc, addfunc):
+    """
+    d1 and d2 are both {key: val} dictionaries. we want to sum them up such as:
+    d1 = {'a': [1, 2], 'b': [3, 0], 'd': [0, 4]} d2 = {'b': [3, 3], 'c': [2, 1]},
+    sum_2_dictionaries_generic(d1, d2, defaultfunc=lambda: [0, 0], addfunc=lambda x, y: [x[0] + y[0], x[1] + y[1]])
+    should give you {'a': [1, 2], 'b': [6, 3], 'c': [2, 1], 'd': [0, 4]}
+
+    The reason that we use defaultfunc instead of default value is that a mutable default value could and will always
+    cause problems.
+    """
+
+    return {x: addfunc(d1.get(x, defaultfunc()), d2.get(x, defaultfunc())) for x in set(d1).union(d2)}
+
+
+def sum_2_2level_dicts_generic(d1, d2, defaultfunc, addfunc):
+    """
+    Same as above but the dictionaries are one level deeper. Example:
+    d1 = {'u1': {'a': [1, 2], 'b': [3, 0], 'd': [0, 4]}, 'u2': {'b': [3, 3], 'c': [2, 1]}}
+    d2 = {'u1': {'a': [1, 2], 'd': [0, 4]}, 'u2': {'b': [3, 3], 'c': [2, 1]}, 'u3': {'a': [3, 2], 'f': [1, 0]}}
+    The result of sum_2_2level_dicts_generic(d1, d2, defaultfunc=lambda: [0, 0],
+    addfunc=lambda x, y: [x[0] + y[0], x[1] + y[1]]) should give you
+    {'u1': {'a': [2, 4], 'b': [3, 0], 'd': [0, 8]}, 'u2': {'c': [4, 2], 'b': [6, 6]}, 'u3': {'a': [3, 2], 'f': [1, 0]}}
+    """
+    return {x: sum_2_dictionaries_generic(d1.get(x, {}), d2.get(x, {}), defaultfunc, addfunc) for x in set(d1).union(d2)}
+
+
 def disp_tm_msg(msg):
     print 'time [%s]: %s' % (datetime.now(), msg)
     sys.stdout.flush()
