@@ -102,6 +102,27 @@ def cv_k_fold(data_size, k=5):
         yield tuple(training), testing
 
 
+def sum_2_dictionaries(d1, d2):
+    """
+    d1 and d2 are both {key: cnt} dictionaries. we want to sum them up such as:
+    d1 = {'a': 10, 'b': 1}, d2 = {'b': 3, 'c': 2}, sum_2_dictionaries(d1, d2)
+    should give you {'a': 10, 'b': 4, 'c': 2}
+    """
+
+    return {x: d1.get(x, 0) + d2.get(x, 0) for x in set(d1).union(d2)}
+
+
+def sum_2_2level_dicts(d1, d2):
+    """
+    Same as above but the dictionaries are one level deeper. Example:
+    d1 = {'u1': {'a': 10, 'b': 1}, 'u2': {'b': 3, 'c': 2}}
+    d2 = {'u1': {'a': 2,  'd': 3}, 'u3': {'b': 3, 'c': 2}}
+    The result of sum_2_2level_dicts(d1, d2) should give
+    {'u1': {'a': 12, 'b': 1, 'd': 3}, 'u2': {'b': 3, 'c': 2}, 'u3': {'b': 3, 'c': 2}}
+    """
+    return {x: sum_2_dictionaries(d1.get(x, {}), d2.get(x, {})) for x in set(d1).union(d2)}
+
+
 def disp_tm_msg(msg):
     print 'time [%s]: %s' % (datetime.now(), msg)
     sys.stdout.flush()
@@ -128,4 +149,5 @@ if __name__ == "__main__":
     # print segmenter(3, range(20))
 
     disp_tm_msg_parallel("Hello, world!")
+
 
