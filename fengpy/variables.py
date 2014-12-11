@@ -310,7 +310,7 @@ def k_fold_train_test_model(model, X, y, perf_measure, variable_def, k_fold=5):
     estimator = ModelDriver(copy.deepcopy(variable_def), model=model)
 
     def run_one_fold(train_indices, test_indices):
-        estimator.fit(X[train_indices], y[train_indices])
+        estimator.fit(X[train_indices, :], y[train_indices])
         predicted = estimator.predict(X[test_indices])
         observed = y[test_indices]
 
@@ -323,3 +323,27 @@ def k_fold_train_test_model(model, X, y, perf_measure, variable_def, k_fold=5):
     return np.mean(perf_list)
 
 
+def k_fold_train_test_simple_model(model, X, y, perf_measure, k_fold=5):
+    """
+    running k-fold on a model and data set. The model is not based on Variables, but a simple sklearn model.
+    :param model:
+    :param X:
+    :param y:
+    :param perf_measure: A functions used to measure the performance of each of k-fold run. Its parameters are
+                         the observed dependent variable and the predicted.
+    :param k_fold:
+    :return: the average of performance result for all the folds.
+    """
+
+    def run_one_fold(train_indices, test_indices):
+        model.fit(X[train_indices, :],  y[train_indices])
+        predicted = model.predict(X[test_indices])
+        observed = y[test_indices]
+
+        return perf_measure(observed, predicted)
+
+    folds = cv_k_fold(len(y), k_fold)
+
+    perf_list = [run_one_fold(fold[0], fold[1]) for fold in folds]
+
+    return np.mean(perf_list)
